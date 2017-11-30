@@ -48,13 +48,13 @@ int eveningOffset = -10;   //10 MINTUES BEFORE SUNSET
 int morningOffset = 5;  //5 MINUTES AFTER SUNRISE
 
 //MORNING ON TIME
-int amONtime = 630;
+int amONtime = 600;
 
 //EVENING OFF TIME
 int pmOFFtime = 2330; //11:30 PM
 
 //EVENING DIM TIME
-int dimTime = 2200; //10 PM
+int dimTime = 2359; //10:00 PM 
 
 
 //SUNRISE DATA FOR TIGARD, OR (ALL TIMES PST - DOES NOT ACCOUNT FOR DST)
@@ -74,7 +74,7 @@ FLASH_TABLE(int, sunRise, 31,
   );
   
   
-//SUNSET DATA FOR TIGARD, OR (ALL TIMES PST - DOES NOT ACCOUNT FOR DST)
+//SUNSET DATA FOR TIGARD, OR (ALL TIMES PST - DOES NOT ACCOUNT FOR DST WHICH ENDS IN NOVEMBER)
 FLASH_TABLE(int, sunSet, 31,
     {1638,1639,1640,1641,1642,1643,1644,1646,1647,1648,1649,1650,1651,1653,1654,1655,1657,1658,1659,1701,1702,1703,1705,1706,1707,1709,1710,1712,1713,1715,1716},
     {1717,1719,1720,1722,1723,1725,1726,1728,1729,1731,1732,1733,1735,1736,1738,1739,1741,1742,1744,1745,1746,1748,1749,1751,1752,1753,1755,1756,1758},
@@ -96,7 +96,9 @@ FLASH_TABLE(int, sunSet, 31,
   
   Serial.begin(9600);
   pinMode(10, OUTPUT);
-  digitalWrite(10, HIGH);  
+  digitalWrite(10, HIGH);
+  pinMode(11, INPUT);
+  digitalWrite(11, HIGH);  
    
    
    for (int i = 0; i < 8; i++) {
@@ -169,6 +171,18 @@ FLASH_TABLE(int, sunSet, 31,
     int amONtimeAbs = amONhour*60 + amONmin;
     int pmOFFtimeAbs = pmOFFhour*60 + pmOFFmin;
     int dimTimeAbs = dimTimehour*60 + dimTimemin;
+    
+    
+    if (digitalRead(11) == LOW ) {
+      
+      for (int i = 0; i < 8; i++) {
+       relayStatus[i] = state1[i];
+       Serial.println("DIMMED OVERRIDE!");
+          }
+       goto actuateRelays;
+    }
+    
+    
   
   //TURN ON BETWEEN (eveningOffset) MINUTES FROM SUNSET AND (pmOFFtime)
    if ( (nowAbs - setAbs) >= eveningOffset && (nowAbs) <= pmOFFtimeAbs ) {
@@ -217,11 +231,13 @@ FLASH_TABLE(int, sunSet, 31,
   
   
   //ACTUATE RELAYS
+  actuateRelays:
+  
   for (int i = 0; i < 8; i++) {
          digitalWrite(powerRelay[i], relayStatus[i]);
          
      }
-     
+ 
      
      
      
